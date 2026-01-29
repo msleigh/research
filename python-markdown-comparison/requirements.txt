@@ -1,0 +1,6 @@
+cmarkgfm
+commonmark
+markdown
+markdown2
+mistune
+matplotlib
