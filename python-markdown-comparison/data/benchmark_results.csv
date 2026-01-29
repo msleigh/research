@@ -1,0 +1,16 @@
+library,size_label,size_bytes,iterations,mean_ms,p95_ms,throughput_mb_s
+cmarkgfm,small,1278,20,0.0813,0.1080,15.7231
+markdown,small,1278,20,10.0797,11.6031,0.1268
+markdown2,small,1278,20,5.7520,6.2304,0.2222
+mistune,small,1278,20,1.8565,2.0163,0.6884
+commonmark,small,1278,20,3.4826,3.7177,0.3670
+cmarkgfm,medium,12780,20,1.5513,1.7154,8.2384
+markdown,medium,12780,20,87.3137,107.5238,0.1464
+markdown2,medium,12780,20,52.4320,56.7852,0.2437
+mistune,medium,12780,20,17.4735,19.5132,0.7314
+commonmark,medium,12780,20,38.0979,42.8287,0.3355
+cmarkgfm,large,76680,20,11.8057,13.1278,6.4952
+markdown,large,76680,20,508.0942,533.8669,0.1509
+markdown2,large,76680,20,312.6236,331.1762,0.2453
+mistune,large,76680,20,110.1894,127.6092,0.6959
+commonmark,large,76680,20,235.0133,270.9266,0.3263
