@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standing Wave Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .equation-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .equation-box h2 {
+            font-size: 1rem;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .equation {
+            font-size: 1.5rem;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            color: #fff;
+        }
+
+        .equation .highlight {
+            color: #00d4ff;
+        }
+
+        .canvas-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(0,20,40,1) 0%, rgba(0,40,60,1) 100%);
+            border-radius: 5px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .control-label label {
+            font-size: 1rem;
+            color: #ddd;
+        }
+
+        .control-label .value {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 212, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 5px;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(145deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(145deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .parameter-description {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .info-item .label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #00d4ff;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-color.wave {
+            background: #00d4ff;
+            box-shadow: 0 0 5px #00d4ff;
+        }
+
+        .legend-color.envelope {
+            background: rgba(255, 100, 100, 0.8);
+        }
+
+        .legend-color.nodes {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Standing Wave Visualizer</h1>
+
+        <div class="equation-box">
+            <h2>Standing Wave Equation</h2>
+            <div class="equation">
+                y(x, t) = A sin(<span class="highlight">k</span>x) cos(<span class="highlight">ω</span>t)
+            </div>
+            <p style="margin-top: 15px; color: #888; font-size: 0.9rem;">
+                where <em>k</em> = 2π/λ (wave number), <em>ω</em> = 2πf (angular frequency), <em>A</em> = amplitude
+            </p>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="waveCanvas" width="960" height="300"></canvas>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color wave"></div>
+                    <span>Standing Wave</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color envelope"></div>
+                    <span>Envelope</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color nodes"></div>
+                    <span>Nodes</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="lambdaSlider">Wavelength (λ)</label>
+                    <span class="value" id="lambdaValue">2.00 m</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="lambdaSlider" min="0.5" max="5" step="0.1" value="2">
+                </div>
+                <p class="parameter-description">The distance between two consecutive points in phase</p>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="kSlider">Wave Number (k)</label>
+                    <span class="value" id="kValue">3.14 rad/m</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="kSlider" min="0.5" max="10" step="0.1" value="3.14">
+                </div>
+                <p class="parameter-description">k = 2π/λ — Number of radians per unit distance</p>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="lengthSlider">String Length (L)</label>
+                    <span class="value" id="lengthValue">10.00 m</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="lengthSlider" min="2" max="20" step="0.5" value="10">
+                </div>
+                <p class="parameter-description">Total length of the vibrating string</p>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="freqSlider">Frequency (f)</label>
+                    <span class="value" id="freqValue">1.00 Hz</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="freqSlider" min="0.1" max="3" step="0.1" value="1">
+                </div>
+                <p class="parameter-description">Oscillation frequency of the wave</p>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-item">
+                    <div class="label">Calculated k from λ</div>
+                    <div class="value" id="calculatedK">3.14 rad/m</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Angular Frequency (ω)</div>
+                    <div class="value" id="omegaValue">6.28 rad/s</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Number of Nodes</div>
+                    <div class="value" id="nodeCount">6</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Wavelengths in String</div>
+                    <div class="value" id="wavelengthsInString">5.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get canvas and context
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Parameters
+        let lambda = 2;      // Wavelength
+        let k = 2 * Math.PI / lambda;  // Wave number
+        let L = 10;          // String length
+        let frequency = 1;   // Frequency in Hz
+        let omega = 2 * Math.PI * frequency;  // Angular frequency
+        let amplitude = 80;  // Amplitude in pixels
+        let time = 0;
+
+        // DOM elements
+        const lambdaSlider = document.getElementById('lambdaSlider');
+        const kSlider = document.getElementById('kSlider');
+        const lengthSlider = document.getElementById('lengthSlider');
+        const freqSlider = document.getElementById('freqSlider');
+
+        const lambdaValue = document.getElementById('lambdaValue');
+        const kValue = document.getElementById('kValue');
+        const lengthValue = document.getElementById('lengthValue');
+        const freqValue = document.getElementById('freqValue');
+
+        const calculatedK = document.getElementById('calculatedK');
+        const omegaValue = document.getElementById('omegaValue');
+        const nodeCount = document.getElementById('nodeCount');
+        const wavelengthsInString = document.getElementById('wavelengthsInString');
+
+        // Update functions
+        function updateLambda(value) {
+            lambda = parseFloat(value);
+            lambdaValue.textContent = lambda.toFixed(2) + ' m';
+            // Update calculated k display
+            const calcK = 2 * Math.PI / lambda;
+            calculatedK.textContent = calcK.toFixed(2) + ' rad/m';
+            updateInfo();
+        }
+
+        function updateK(value) {
+            k = parseFloat(value);
+            kValue.textContent = k.toFixed(2) + ' rad/m';
+            updateInfo();
+        }
+
+        function updateLength(value) {
+            L = parseFloat(value);
+            lengthValue.textContent = L.toFixed(2) + ' m';
+            updateInfo();
+        }
+
+        function updateFrequency(value) {
+            frequency = parseFloat(value);
+            omega = 2 * Math.PI * frequency;
+            freqValue.textContent = frequency.toFixed(2) + ' Hz';
+            omegaValue.textContent = omega.toFixed(2) + ' rad/s';
+            updateInfo();
+        }
+
+        function updateInfo() {
+            // Calculate number of nodes (where sin(kx) = 0)
+            // Nodes occur at kx = nπ, so x = nπ/k
+            // Count nodes from x=0 to x=L
+            const nodes = Math.floor(k * L / Math.PI) + 1;
+            nodeCount.textContent = nodes;
+
+            // Calculate how many wavelengths fit in the string
+            const numWavelengths = L / lambda;
+            wavelengthsInString.textContent = numWavelengths.toFixed(2);
+        }
+
+        // Event listeners
+        lambdaSlider.addEventListener('input', (e) => updateLambda(e.target.value));
+        kSlider.addEventListener('input', (e) => updateK(e.target.value));
+        lengthSlider.addEventListener('input', (e) => updateLength(e.target.value));
+        freqSlider.addEventListener('input', (e) => updateFrequency(e.target.value));
+
+        // Drawing function
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 20, 40, 1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate scaling
+            const padding = 50;
+            const drawWidth = canvas.width - 2 * padding;
+            const centerY = canvas.height / 2;
+            const scale = drawWidth / L;
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+
+            // Vertical grid lines
+            for (let i = 0; i <= L; i++) {
+                const x = padding + i * scale;
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, canvas.height - padding);
+                ctx.stroke();
+            }
+
+            // Horizontal grid lines
+            for (let i = -2; i <= 2; i++) {
+                const y = centerY + i * 40;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            // Draw center line (equilibrium)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, centerY);
+            ctx.lineTo(canvas.width - padding, centerY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw envelope (maximum amplitude)
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
+            ctx.lineWidth = 2;
+
+            // Upper envelope
+            ctx.beginPath();
+            for (let px = 0; px <= drawWidth; px++) {
+                const x = (px / drawWidth) * L;
+                const y = amplitude * Math.abs(Math.sin(k * x));
+                const canvasX = padding + px;
+                const canvasY = centerY - y;
+                if (px === 0) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+
+            // Lower envelope
+            ctx.beginPath();
+            for (let px = 0; px <= drawWidth; px++) {
+                const x = (px / drawWidth) * L;
+                const y = amplitude * Math.abs(Math.sin(k * x));
+                const canvasX = padding + px;
+                const canvasY = centerY + y;
+                if (px === 0) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+
+            // Draw standing wave
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00d4ff';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            for (let px = 0; px <= drawWidth; px++) {
+                const x = (px / drawWidth) * L;
+                // Standing wave equation: y = A * sin(kx) * cos(ωt)
+                const y = amplitude * Math.sin(k * x) * Math.cos(omega * time);
+                const canvasX = padding + px;
+                const canvasY = centerY - y;
+                if (px === 0) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Draw nodes (points that don't move)
+            ctx.fillStyle = '#ffcc00';
+            for (let n = 0; n * Math.PI / k <= L; n++) {
+                const x = n * Math.PI / k;
+                if (x <= L) {
+                    const canvasX = padding + (x / L) * drawWidth;
+                    ctx.beginPath();
+                    ctx.arc(canvasX, centerY, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+
+            // Draw fixed ends
+            ctx.fillStyle = '#ff6666';
+            ctx.beginPath();
+            ctx.arc(padding, centerY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width - padding, centerY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw axis labels
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+
+            // X-axis labels
+            for (let i = 0; i <= L; i += Math.max(1, Math.floor(L / 10))) {
+                const x = padding + (i / L) * drawWidth;
+                ctx.fillText(i + 'm', x, canvas.height - padding + 20);
+            }
+
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, centerY);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Displacement', 0, 0);
+            ctx.restore();
+
+            // Update time
+            time += 0.016; // Approximately 60 FPS
+
+            requestAnimationFrame(draw);
+        }
+
+        // Initialize
+        updateLambda(lambdaSlider.value);
+        updateK(kSlider.value);
+        updateLength(lengthSlider.value);
+        updateFrequency(freqSlider.value);
+
+        // Start animation
+        draw();
+    </script>
+</body>
+</html>
