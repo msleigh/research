@@ -367,9 +367,9 @@
                     <span class="value" id="lambdaValue">2.00 m</span>
                 </div>
                 <div class="slider-container">
-                    <input type="range" id="lambdaSlider" min="0.5" max="5" step="0.1" value="2">
+                    <input type="range" id="lambdaSlider" min="0.5" max="20" step="0.1" value="2">
                 </div>
-                <p class="parameter-description">The distance between two consecutive points in phase</p>
+                <p class="parameter-description">Range: L/20 to 2L (string length L = 10 m)</p>
                 <p class="linked-note">Linked: changing λ updates k = 2π/λ</p>
             </div>
 
@@ -379,21 +379,10 @@
                     <span class="value" id="kValue">3.14 rad/m</span>
                 </div>
                 <div class="slider-container">
-                    <input type="range" id="kSlider" min="0.5" max="12.57" step="0.1" value="3.14">
+                    <input type="range" id="kSlider" min="0.31" max="12.57" step="0.01" value="3.14">
                 </div>
                 <p class="parameter-description">k = 2π/λ — Number of radians per unit distance</p>
                 <p class="linked-note">Linked: changing k updates λ = 2π/k</p>
-            </div>
-
-            <div class="control-group">
-                <div class="control-label">
-                    <label for="lengthSlider">String Length (L)</label>
-                    <span class="value" id="lengthValue">10.00 m</span>
-                </div>
-                <div class="slider-container">
-                    <input type="range" id="lengthSlider" min="2" max="20" step="0.5" value="10">
-                </div>
-                <p class="parameter-description">Total length of the vibrating string</p>
             </div>
 
             <div class="control-group">
@@ -430,9 +419,9 @@
         const ctx = canvas.getContext('2d');
 
         // Parameters
-        let lambda = 2;      // Wavelength
+        const L = 10;        // String length (fixed)
+        let lambda = 2;      // Wavelength (range: L/20 to 2*L)
         let k = 2 * Math.PI / lambda;  // Wave number (linked to lambda)
-        let L = 10;          // String length
         let frequency = 1;   // Frequency in Hz
         let omega = 2 * Math.PI * frequency;  // Angular frequency
         let amplitude = 80;  // Amplitude in pixels
@@ -442,12 +431,10 @@
         // DOM elements
         const lambdaSlider = document.getElementById('lambdaSlider');
         const kSlider = document.getElementById('kSlider');
-        const lengthSlider = document.getElementById('lengthSlider');
         const freqSlider = document.getElementById('freqSlider');
 
         const lambdaValue = document.getElementById('lambdaValue');
         const kValue = document.getElementById('kValue');
-        const lengthValue = document.getElementById('lengthValue');
         const freqValue = document.getElementById('freqValue');
 
         const omegaValue = document.getElementById('omegaValue');
@@ -522,16 +509,10 @@
             if (updateLambda) {
                 lambda = 2 * Math.PI / k;
                 lambdaValue.textContent = lambda.toFixed(2) + ' m';
-                lambdaSlider.value = Math.min(Math.max(lambda, 0.5), 5);
+                lambdaSlider.value = Math.min(Math.max(lambda, L/20), 2*L);
             }
 
             updating = false;
-            updateInfo();
-        }
-
-        function updateLength(value) {
-            L = parseFloat(value);
-            lengthValue.textContent = L.toFixed(2) + ' m';
             updateInfo();
         }
 
@@ -571,7 +552,6 @@
         // Event listeners
         lambdaSlider.addEventListener('input', (e) => updateLambda(e.target.value, true));
         kSlider.addEventListener('input', (e) => updateK(e.target.value, true));
-        lengthSlider.addEventListener('input', (e) => updateLength(e.target.value));
         freqSlider.addEventListener('input', (e) => updateFrequency(e.target.value));
 
         // Draw wave
@@ -748,7 +728,6 @@
 
         // Initialize
         updateLambda(lambdaSlider.value, true);
-        updateLength(lengthSlider.value);
         updateFrequency(freqSlider.value);
 
         // Start animation
