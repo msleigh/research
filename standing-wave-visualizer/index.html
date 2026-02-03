@@ -49,22 +49,48 @@
         .equations-container {
             display: flex;
             justify-content: center;
-            gap: 40px;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
-        .equation-item {
+        .equation-btn {
             padding: 15px 25px;
             border-radius: 8px;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.6;
         }
 
-        .equation-item.form1 {
-            border-left: 4px solid #00d4ff;
+        .equation-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
         }
 
-        .equation-item.form2 {
-            border-left: 4px solid #ff6b9d;
+        .equation-btn.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .equation-btn.form1 {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .equation-btn.form1.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .equation-btn.form2 {
+            border-color: rgba(255, 107, 157, 0.3);
+        }
+
+        .equation-btn.form2.active {
+            border-color: #ff6b9d;
+            background: rgba(255, 107, 157, 0.15);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
         }
 
         .equation {
@@ -295,62 +321,41 @@
         <h1>Standing Wave Visualizer</h1>
 
         <div class="equation-box">
-            <h2>Standing Wave Equations</h2>
+            <h2>Select Standing Wave Form</h2>
             <div class="equations-container">
-                <div class="equation-item form1">
-                    <div class="equation-label">Form 1 (Cyan)</div>
+                <button class="equation-btn form1 active" id="btn-form1" onclick="selectForm('cos')">
+                    <div class="equation-label">Form 1</div>
                     <div class="equation">
-                        y<sub>1</sub> = 2A <span class="cyan">cos(kx)</span> sin(ωt)
+                        y = 2A <span class="cyan">cos(kx)</span> sin(ωt)
                     </div>
-                </div>
-                <div class="equation-item form2">
-                    <div class="equation-label">Form 2 (Pink)</div>
+                </button>
+                <button class="equation-btn form2" id="btn-form2" onclick="selectForm('sin')">
+                    <div class="equation-label">Form 2</div>
                     <div class="equation">
-                        y<sub>2</sub> = 2A cos(ωt) <span class="pink">sin(kx)</span>
+                        y = 2A cos(ωt) <span class="pink">sin(kx)</span>
                     </div>
-                </div>
+                </button>
             </div>
             <p class="equation-note">
-                where <em>k</em> = 2π/λ (wave number), <em>ω</em> = 2πf (angular frequency), <em>A</em> = amplitude<br>
-                <span style="color: #00d4ff;">Form 1</span> has nodes where cos(kx) = 0 &nbsp;|&nbsp;
-                <span style="color: #ff6b9d;">Form 2</span> has nodes where sin(kx) = 0
+                where <em>k</em> = 2π/λ (wave number), <em>ω</em> = 2πf (angular frequency), <em>A</em> = amplitude
             </p>
         </div>
 
         <div class="canvas-container">
-            <div class="canvas-title form1">Form 1: y = 2A cos(kx) sin(ωt)</div>
-            <canvas id="waveCanvas1" width="960" height="220"></canvas>
-            <div class="legend">
+            <div class="canvas-title form1" id="canvas-title">Form 1: y = 2A cos(kx) sin(ωt) — nodes where cos(kx) = 0</div>
+            <canvas id="waveCanvas" width="960" height="300"></canvas>
+            <div class="legend" id="legend">
                 <div class="legend-item">
-                    <div class="legend-color wave cyan"></div>
+                    <div class="legend-color wave cyan" id="legend-wave"></div>
                     <span>Standing Wave</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color wave cyan envelope"></div>
+                    <div class="legend-color wave cyan envelope" id="legend-envelope"></div>
                     <span>Envelope</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color nodes" style="background: #00d4ff;"></div>
-                    <span>Nodes (cos(kx) = 0)</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="canvas-container">
-            <div class="canvas-title form2">Form 2: y = 2A cos(ωt) sin(kx)</div>
-            <canvas id="waveCanvas2" width="960" height="220"></canvas>
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color wave pink"></div>
-                    <span>Standing Wave</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color wave pink envelope"></div>
-                    <span>Envelope</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color nodes" style="background: #ff6b9d;"></div>
-                    <span>Nodes (sin(kx) = 0)</span>
+                    <div class="legend-color nodes" style="background: #00d4ff;" id="legend-nodes"></div>
+                    <span id="legend-nodes-text">Nodes (cos(kx) = 0)</span>
                 </div>
             </div>
         </div>
@@ -412,23 +417,17 @@
                     <div class="value" id="wavelengthsInString">5.00</div>
                 </div>
                 <div class="info-item">
-                    <div class="label">Nodes (Form 1: cos)</div>
-                    <div class="value" id="nodeCount1">6</div>
-                </div>
-                <div class="info-item">
-                    <div class="label">Nodes (Form 2: sin)</div>
-                    <div class="value" id="nodeCount2">6</div>
+                    <div class="label">Number of Nodes</div>
+                    <div class="value" id="nodeCount">6</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Get canvases and contexts
-        const canvas1 = document.getElementById('waveCanvas1');
-        const ctx1 = canvas1.getContext('2d');
-        const canvas2 = document.getElementById('waveCanvas2');
-        const ctx2 = canvas2.getContext('2d');
+        // Get canvas and context
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
 
         // Parameters
         let lambda = 2;      // Wavelength
@@ -436,8 +435,9 @@
         let L = 10;          // String length
         let frequency = 1;   // Frequency in Hz
         let omega = 2 * Math.PI * frequency;  // Angular frequency
-        let amplitude = 60;  // Amplitude in pixels
+        let amplitude = 80;  // Amplitude in pixels
         let time = 0;
+        let selectedForm = 'cos';  // 'cos' for Form 1, 'sin' for Form 2
 
         // DOM elements
         const lambdaSlider = document.getElementById('lambdaSlider');
@@ -452,11 +452,45 @@
 
         const omegaValue = document.getElementById('omegaValue');
         const wavelengthsInString = document.getElementById('wavelengthsInString');
-        const nodeCount1 = document.getElementById('nodeCount1');
-        const nodeCount2 = document.getElementById('nodeCount2');
+        const nodeCount = document.getElementById('nodeCount');
+
+        const btnForm1 = document.getElementById('btn-form1');
+        const btnForm2 = document.getElementById('btn-form2');
+        const canvasTitle = document.getElementById('canvas-title');
+        const legendWave = document.getElementById('legend-wave');
+        const legendEnvelope = document.getElementById('legend-envelope');
+        const legendNodes = document.getElementById('legend-nodes');
+        const legendNodesText = document.getElementById('legend-nodes-text');
 
         // Flag to prevent circular updates
         let updating = false;
+
+        // Form selection
+        function selectForm(form) {
+            selectedForm = form;
+
+            if (form === 'cos') {
+                btnForm1.classList.add('active');
+                btnForm2.classList.remove('active');
+                canvasTitle.textContent = 'Form 1: y = 2A cos(kx) sin(ωt) — nodes where cos(kx) = 0';
+                canvasTitle.className = 'canvas-title form1';
+                legendWave.className = 'legend-color wave cyan';
+                legendEnvelope.className = 'legend-color wave cyan envelope';
+                legendNodes.style.background = '#00d4ff';
+                legendNodesText.textContent = 'Nodes (cos(kx) = 0)';
+            } else {
+                btnForm1.classList.remove('active');
+                btnForm2.classList.add('active');
+                canvasTitle.textContent = 'Form 2: y = 2A cos(ωt) sin(kx) — nodes where sin(kx) = 0';
+                canvasTitle.className = 'canvas-title form2';
+                legendWave.className = 'legend-color wave pink';
+                legendEnvelope.className = 'legend-color wave pink envelope';
+                legendNodes.style.background = '#ff6b9d';
+                legendNodesText.textContent = 'Nodes (sin(kx) = 0)';
+            }
+
+            updateInfo();
+        }
 
         // Update functions
         function updateLambda(value, updateK = true) {
@@ -514,25 +548,24 @@
             const numWavelengths = L / lambda;
             wavelengthsInString.textContent = numWavelengths.toFixed(2);
 
-            // Form 1: y = 2A cos(kx) sin(ωt)
-            // Nodes where cos(kx) = 0, i.e., kx = (2n+1)π/2
-            let nodes1 = 0;
-            for (let n = 0; ; n++) {
-                const x = (2 * n + 1) * Math.PI / (2 * k);
-                if (x > L) break;
-                nodes1++;
+            // Calculate nodes based on selected form
+            let nodes = 0;
+            if (selectedForm === 'cos') {
+                // Form 1: nodes where cos(kx) = 0, i.e., kx = (2n+1)π/2
+                for (let n = 0; ; n++) {
+                    const x = (2 * n + 1) * Math.PI / (2 * k);
+                    if (x > L) break;
+                    nodes++;
+                }
+            } else {
+                // Form 2: nodes where sin(kx) = 0, i.e., kx = nπ
+                for (let n = 0; ; n++) {
+                    const x = n * Math.PI / k;
+                    if (x > L) break;
+                    nodes++;
+                }
             }
-            nodeCount1.textContent = nodes1;
-
-            // Form 2: y = 2A cos(ωt) sin(kx)
-            // Nodes where sin(kx) = 0, i.e., kx = nπ
-            let nodes2 = 0;
-            for (let n = 0; ; n++) {
-                const x = n * Math.PI / k;
-                if (x > L) break;
-                nodes2++;
-            }
-            nodeCount2.textContent = nodes2;
+            nodeCount.textContent = nodes;
         }
 
         // Event listeners
@@ -541,8 +574,10 @@
         lengthSlider.addEventListener('input', (e) => updateLength(e.target.value));
         freqSlider.addEventListener('input', (e) => updateFrequency(e.target.value));
 
-        // Draw a single wave form
-        function drawWave(ctx, canvas, waveType, color) {
+        // Draw wave
+        function drawWave() {
+            const color = selectedForm === 'cos' ? 'rgba(0, 212, 255, 1)' : 'rgba(255, 107, 157, 1)';
+
             // Clear canvas
             ctx.fillStyle = 'rgba(0, 20, 40, 1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -561,14 +596,14 @@
             for (let i = 0; i <= L; i++) {
                 const x = padding + i * scale;
                 ctx.beginPath();
-                ctx.moveTo(x, 20);
-                ctx.lineTo(x, canvas.height - 30);
+                ctx.moveTo(x, 30);
+                ctx.lineTo(x, canvas.height - 40);
                 ctx.stroke();
             }
 
             // Horizontal grid lines
-            for (let i = -1; i <= 1; i++) {
-                const y = centerY + i * 50;
+            for (let i = -2; i <= 2; i++) {
+                const y = centerY + i * 40;
                 ctx.beginPath();
                 ctx.moveTo(padding, y);
                 ctx.lineTo(canvas.width - padding, y);
@@ -584,8 +619,8 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Determine spatial function based on wave type
-            const spatialFn = waveType === 'cos' ? Math.cos : Math.sin;
+            // Determine spatial function based on selected form
+            const spatialFn = selectedForm === 'cos' ? Math.cos : Math.sin;
 
             // Draw envelope
             ctx.strokeStyle = color.replace('1)', '0.3)');
@@ -625,7 +660,7 @@
             for (let px = 0; px <= drawWidth; px++) {
                 const x = (px / drawWidth) * L;
                 let y;
-                if (waveType === 'cos') {
+                if (selectedForm === 'cos') {
                     // Form 1: y = 2A cos(kx) sin(ωt)
                     y = amplitude * Math.cos(k * x) * Math.sin(omega * time);
                 } else {
@@ -645,7 +680,7 @@
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
 
-            if (waveType === 'cos') {
+            if (selectedForm === 'cos') {
                 // Nodes where cos(kx) = 0 at x = (2n+1)π/(2k)
                 for (let n = 0; ; n++) {
                     const x = (2 * n + 1) * Math.PI / (2 * k);
@@ -690,21 +725,20 @@
             // X-axis labels
             for (let i = 0; i <= L; i += Math.max(1, Math.floor(L / 10))) {
                 const x = padding + (i / L) * drawWidth;
-                ctx.fillText(i + 'm', x, canvas.height - 10);
+                ctx.fillText(i + 'm', x, canvas.height - 15);
             }
 
             // Y-axis label
             ctx.save();
-            ctx.translate(15, centerY);
+            ctx.translate(20, centerY);
             ctx.rotate(-Math.PI / 2);
-            ctx.fillText('y', 0, 0);
+            ctx.fillText('Displacement (y)', 0, 0);
             ctx.restore();
         }
 
         // Main draw function
         function draw() {
-            drawWave(ctx1, canvas1, 'cos', 'rgba(0, 212, 255, 1)');
-            drawWave(ctx2, canvas2, 'sin', 'rgba(255, 107, 157, 1)');
+            drawWave();
 
             // Update time
             time += 0.016; // Approximately 60 FPS
