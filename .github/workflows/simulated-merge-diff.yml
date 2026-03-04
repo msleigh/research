@@ -36,5 +36,5 @@ jobs:
             echo "### No differences found" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          npx diff2html-cli -i file -s side --highlightCode -F summary.html -- simulated.diff
+          npx diff2html-cli -i file -s side --highlightCode -F summary.html --htmlWrapperTemplate .github/diff-template.html -- simulated.diff
           cat summary.html >> "$GITHUB_STEP_SUMMARY"
