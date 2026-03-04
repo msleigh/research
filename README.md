@@ -25,7 +25,11 @@ Having a separate repository for research projects offers several advantages:
 
 ## Research Projects
 
-_Projects will be added as they are completed._
+| Project | Description |
+|---------|-------------|
+| [python-markdown-comparison](python-markdown-comparison/) | Benchmarking Python Markdown parsing libraries |
+
+_More projects will be added as they are completed._
 
 ## Philosophy
 
