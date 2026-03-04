@@ -11,19 +11,19 @@ jobs:
   merge-diff:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR branch
+      - name: Checkout base branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.base_ref }}
           fetch-depth: 0
 
-      - name: Perform simulated merge and generate diff
+      - name: Simulate merge and generate diff
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git fetch origin ${{ github.base_ref }}
-          git merge origin/${{ github.base_ref }} --no-commit --no-ff || true
-          git diff --cached HEAD > simulated.diff
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git merge ${{ github.event.pull_request.head.sha }} --no-commit --no-ff || true
+          git diff HEAD > simulated.diff
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
