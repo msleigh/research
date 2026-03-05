@@ -25,16 +25,13 @@ jobs:
           git merge ${{ github.event.pull_request.head.sha }} --no-commit --no-ff || true
           git diff HEAD > simulated.diff
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
       - name: Render diff to Job Summary
         run: |
           if [ ! -s simulated.diff ]; then
             echo "### No differences found" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          npx diff2html-cli -i file -s side --highlightCode -F summary.html -- simulated.diff
-          cat summary.html >> "$GITHUB_STEP_SUMMARY"
+          echo '### Simulated merge diff' >> "$GITHUB_STEP_SUMMARY"
+          echo '```diff' >> "$GITHUB_STEP_SUMMARY"
+          cat simulated.diff >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
