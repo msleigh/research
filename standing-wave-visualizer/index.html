@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standing Wave Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .equation-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .equation-box h2 {
+            font-size: 1rem;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+
+        .equations-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .equation-btn {
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        .equation-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .equation-btn.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .equation-btn.form1 {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .equation-btn.form1.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .equation-btn.form2 {
+            border-color: rgba(255, 107, 157, 0.3);
+        }
+
+        .equation-btn.form2.active {
+            border-color: #ff6b9d;
+            background: rgba(255, 107, 157, 0.15);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
+        }
+
+        .equation {
+            font-size: 1.4rem;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            color: #fff;
+        }
+
+        .equation .cyan {
+            color: #00d4ff;
+        }
+
+        .equation .pink {
+            color: #ff6b9d;
+        }
+
+        .equation-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', sans-serif;
+            font-style: normal;
+        }
+
+        .equation-note {
+            margin-top: 15px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .canvas-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .canvas-title {
+            font-size: 1rem;
+            color: #aaa;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .canvas-title.form1 {
+            color: #00d4ff;
+        }
+
+        .canvas-title.form2 {
+            color: #ff6b9d;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(0,20,40,1) 0%, rgba(0,40,60,1) 100%);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .control-label label {
+            font-size: 1rem;
+            color: #ddd;
+        }
+
+        .control-label .value {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 212, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 5px;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(145deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(145deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .parameter-description {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .info-item .label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #00d4ff;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-color.wave {
+            box-shadow: 0 0 5px currentColor;
+        }
+
+        .legend-color.wave.cyan {
+            background: #00d4ff;
+        }
+
+        .legend-color.wave.pink {
+            background: #ff6b9d;
+        }
+
+        .legend-color.envelope {
+            opacity: 0.5;
+        }
+
+        .legend-color.nodes {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .linked-note {
+            font-size: 0.75rem;
+            color: #00d4ff;
+            margin-top: 3px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Standing Wave Visualizer</h1>
+
+        <div class="equation-box">
+            <h2>Select Standing Wave Form</h2>
+            <div class="equations-container">
+                <button class="equation-btn form1 active" id="btn-form1" onclick="selectForm('cos')">
+                    <div class="equation-label">Form 1</div>
+                    <div class="equation">
+                        y = 2A <span class="cyan">cos(kx)</span> sin(ωt)
+                    </div>
+                </button>
+                <button class="equation-btn form2" id="btn-form2" onclick="selectForm('sin')">
+                    <div class="equation-label">Form 2</div>
+                    <div class="equation">
+                        y = 2A cos(ωt) <span class="pink">sin(kx)</span>
+                    </div>
+                </button>
+            </div>
+            <p class="equation-note">
+                where <em>k</em> = 2π/λ (wave number), <em>ω</em> = 2πf (angular frequency), <em>A</em> = amplitude
+            </p>
+        </div>
+
+        <div class="canvas-container">
+            <div class="canvas-title form1" id="canvas-title">Form 1: y = 2A cos(kx) sin(ωt) — nodes where cos(kx) = 0</div>
+            <canvas id="waveCanvas" width="960" height="300"></canvas>
+            <div class="legend" id="legend">
+                <div class="legend-item">
+                    <div class="legend-color wave cyan" id="legend-wave"></div>
+                    <span>Standing Wave</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color wave cyan envelope" id="legend-envelope"></div>
+                    <span>Envelope</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color nodes" style="background: #00d4ff;" id="legend-nodes"></div>
+                    <span id="legend-nodes-text">Nodes (cos(kx) = 0)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="lambdaSlider">Wavelength (λ)</label>
+                    <span class="value" id="lambdaValue">2.00 m</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="lambdaSlider" min="0.5" max="20" step="0.1" value="2">
+                </div>
+                <p class="parameter-description">Range: L/20 to 2L (string length L = 10 m)</p>
+                <p class="linked-note">Linked: changing λ updates k = 2π/λ</p>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="kSlider">Wave Number (k)</label>
+                    <span class="value" id="kValue">3.14 rad/m</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="kSlider" min="0.31" max="12.57" step="0.01" value="3.14">
+                </div>
+                <p class="parameter-description">k = 2π/λ — Number of radians per unit distance</p>
+                <p class="linked-note">Linked: changing k updates λ = 2π/k</p>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="freqSlider">Frequency (f)</label>
+                    <span class="value" id="freqValue">1.00 Hz</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="freqSlider" min="0.1" max="3" step="0.1" value="1">
+                </div>
+                <p class="parameter-description">Oscillation frequency of the wave</p>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-item">
+                    <div class="label">Angular Frequency (ω)</div>
+                    <div class="value" id="omegaValue">6.28 rad/s</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Wavelengths in String</div>
+                    <div class="value" id="wavelengthsInString">5.00</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">Number of Nodes</div>
+                    <div class="value" id="nodeCount">6</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get canvas and context
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Parameters
+        const L = 10;        // String length (fixed)
+        let lambda = 2;      // Wavelength (range: L/20 to 2*L)
+        let k = 2 * Math.PI / lambda;  // Wave number (linked to lambda)
+        let frequency = 1;   // Frequency in Hz
+        let omega = 2 * Math.PI * frequency;  // Angular frequency
+        let amplitude = 80;  // Amplitude in pixels
+        let time = 0;
+        let selectedForm = 'cos';  // 'cos' for Form 1, 'sin' for Form 2
+
+        // DOM elements
+        const lambdaSlider = document.getElementById('lambdaSlider');
+        const kSlider = document.getElementById('kSlider');
+        const freqSlider = document.getElementById('freqSlider');
+
+        const lambdaValue = document.getElementById('lambdaValue');
+        const kValue = document.getElementById('kValue');
+        const freqValue = document.getElementById('freqValue');
+
+        const omegaValue = document.getElementById('omegaValue');
+        const wavelengthsInString = document.getElementById('wavelengthsInString');
+        const nodeCount = document.getElementById('nodeCount');
+
+        const btnForm1 = document.getElementById('btn-form1');
+        const btnForm2 = document.getElementById('btn-form2');
+        const canvasTitle = document.getElementById('canvas-title');
+        const legendWave = document.getElementById('legend-wave');
+        const legendEnvelope = document.getElementById('legend-envelope');
+        const legendNodes = document.getElementById('legend-nodes');
+        const legendNodesText = document.getElementById('legend-nodes-text');
+
+        // Flag to prevent circular updates
+        let updating = false;
+
+        // Form selection
+        function selectForm(form) {
+            selectedForm = form;
+
+            if (form === 'cos') {
+                btnForm1.classList.add('active');
+                btnForm2.classList.remove('active');
+                canvasTitle.textContent = 'Form 1: y = 2A cos(kx) sin(ωt) — nodes where cos(kx) = 0';
+                canvasTitle.className = 'canvas-title form1';
+                legendWave.className = 'legend-color wave cyan';
+                legendEnvelope.className = 'legend-color wave cyan envelope';
+                legendNodes.style.background = '#00d4ff';
+                legendNodesText.textContent = 'Nodes (cos(kx) = 0)';
+            } else {
+                btnForm1.classList.remove('active');
+                btnForm2.classList.add('active');
+                canvasTitle.textContent = 'Form 2: y = 2A cos(ωt) sin(kx) — nodes where sin(kx) = 0';
+                canvasTitle.className = 'canvas-title form2';
+                legendWave.className = 'legend-color wave pink';
+                legendEnvelope.className = 'legend-color wave pink envelope';
+                legendNodes.style.background = '#ff6b9d';
+                legendNodesText.textContent = 'Nodes (sin(kx) = 0)';
+            }
+
+            updateInfo();
+        }
+
+        // Update functions
+        function updateLambda(value, updateK = true) {
+            if (updating) return;
+            updating = true;
+
+            lambda = parseFloat(value);
+            lambdaValue.textContent = lambda.toFixed(2) + ' m';
+
+            // Update k based on lambda (k = 2π/λ)
+            if (updateK) {
+                k = 2 * Math.PI / lambda;
+                kValue.textContent = k.toFixed(2) + ' rad/m';
+                kSlider.value = k;
+            }
+
+            updating = false;
+            updateInfo();
+        }
+
+        function updateK(value, updateLambda = true) {
+            if (updating) return;
+            updating = true;
+
+            k = parseFloat(value);
+            kValue.textContent = k.toFixed(2) + ' rad/m';
+
+            // Update lambda based on k (λ = 2π/k)
+            if (updateLambda) {
+                lambda = 2 * Math.PI / k;
+                lambdaValue.textContent = lambda.toFixed(2) + ' m';
+                lambdaSlider.value = Math.min(Math.max(lambda, L/20), 2*L);
+            }
+
+            updating = false;
+            updateInfo();
+        }
+
+        function updateFrequency(value) {
+            frequency = parseFloat(value);
+            omega = 2 * Math.PI * frequency;
+            freqValue.textContent = frequency.toFixed(2) + ' Hz';
+            omegaValue.textContent = omega.toFixed(2) + ' rad/s';
+            updateInfo();
+        }
+
+        function updateInfo() {
+            // Calculate how many wavelengths fit in the string
+            const numWavelengths = L / lambda;
+            wavelengthsInString.textContent = numWavelengths.toFixed(2);
+
+            // Calculate nodes based on selected form
+            let nodes = 0;
+            if (selectedForm === 'cos') {
+                // Form 1: nodes where cos(kx) = 0, i.e., kx = (2n+1)π/2
+                for (let n = 0; ; n++) {
+                    const x = (2 * n + 1) * Math.PI / (2 * k);
+                    if (x > L) break;
+                    nodes++;
+                }
+            } else {
+                // Form 2: nodes where sin(kx) = 0, i.e., kx = nπ
+                for (let n = 0; ; n++) {
+                    const x = n * Math.PI / k;
+                    if (x > L) break;
+                    nodes++;
+                }
+            }
+            nodeCount.textContent = nodes;
+        }
+
+        // Event listeners
+        lambdaSlider.addEventListener('input', (e) => updateLambda(e.target.value, true));
+        kSlider.addEventListener('input', (e) => updateK(e.target.value, true));
+        freqSlider.addEventListener('input', (e) => updateFrequency(e.target.value));
+
+        // Draw wave
+        function drawWave() {
+            const color = selectedForm === 'cos' ? 'rgba(0, 212, 255, 1)' : 'rgba(255, 107, 157, 1)';
+
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 20, 40, 1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate scaling
+            const padding = 50;
+            const drawWidth = canvas.width - 2 * padding;
+            const centerY = canvas.height / 2;
+            const scale = drawWidth / L;
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+
+            // Vertical grid lines
+            for (let i = 0; i <= L; i++) {
+                const x = padding + i * scale;
+                ctx.beginPath();
+                ctx.moveTo(x, 30);
+                ctx.lineTo(x, canvas.height - 40);
+                ctx.stroke();
+            }
+
+            // Horizontal grid lines
+            for (let i = -2; i <= 2; i++) {
+                const y = centerY + i * 40;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            // Draw center line (equilibrium)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, centerY);
+            ctx.lineTo(canvas.width - padding, centerY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Determine spatial function based on selected form
+            const spatialFn = selectedForm === 'cos' ? Math.cos : Math.sin;
+
+            // Draw envelope
+            ctx.strokeStyle = color.replace('1)', '0.3)');
+            ctx.lineWidth = 1;
+
+            // Upper envelope
+            ctx.beginPath();
+            for (let px = 0; px <= drawWidth; px++) {
+                const x = (px / drawWidth) * L;
+                const y = amplitude * Math.abs(spatialFn(k * x));
+                const canvasX = padding + px;
+                const canvasY = centerY - y;
+                if (px === 0) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+
+            // Lower envelope
+            ctx.beginPath();
+            for (let px = 0; px <= drawWidth; px++) {
+                const x = (px / drawWidth) * L;
+                const y = amplitude * Math.abs(spatialFn(k * x));
+                const canvasX = padding + px;
+                const canvasY = centerY + y;
+                if (px === 0) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+
+            // Draw standing wave
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 8;
+
+            ctx.beginPath();
+            for (let px = 0; px <= drawWidth; px++) {
+                const x = (px / drawWidth) * L;
+                let y;
+                if (selectedForm === 'cos') {
+                    // Form 1: y = 2A cos(kx) sin(ωt)
+                    y = amplitude * Math.cos(k * x) * Math.sin(omega * time);
+                } else {
+                    // Form 2: y = 2A cos(ωt) sin(kx)
+                    y = amplitude * Math.cos(omega * time) * Math.sin(k * x);
+                }
+                const canvasX = padding + px;
+                const canvasY = centerY - y;
+                if (px === 0) ctx.moveTo(canvasX, canvasY);
+                else ctx.lineTo(canvasX, canvasY);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Draw nodes
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+
+            if (selectedForm === 'cos') {
+                // Nodes where cos(kx) = 0 at x = (2n+1)π/(2k)
+                for (let n = 0; ; n++) {
+                    const x = (2 * n + 1) * Math.PI / (2 * k);
+                    if (x > L) break;
+                    const canvasX = padding + (x / L) * drawWidth;
+                    ctx.beginPath();
+                    ctx.arc(canvasX, centerY, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            } else {
+                // Nodes where sin(kx) = 0 at x = nπ/k
+                for (let n = 0; ; n++) {
+                    const x = n * Math.PI / k;
+                    if (x > L) break;
+                    const canvasX = padding + (x / L) * drawWidth;
+                    ctx.beginPath();
+                    ctx.arc(canvasX, centerY, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
+
+            // Draw fixed ends
+            ctx.fillStyle = '#888';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(padding, centerY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(canvas.width - padding, centerY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw axis labels
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+
+            // X-axis labels
+            for (let i = 0; i <= L; i += Math.max(1, Math.floor(L / 10))) {
+                const x = padding + (i / L) * drawWidth;
+                ctx.fillText(i + 'm', x, canvas.height - 15);
+            }
+
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, centerY);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Displacement (y)', 0, 0);
+            ctx.restore();
+        }
+
+        // Main draw function
+        function draw() {
+            drawWave();
+
+            // Update time
+            time += 0.016; // Approximately 60 FPS
+
+            requestAnimationFrame(draw);
+        }
+
+        // Initialize
+        updateLambda(lambdaSlider.value, true);
+        updateFrequency(freqSlider.value);
+
+        // Start animation
+        draw();
+    </script>
+</body>
+</html>
